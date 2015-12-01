@@ -1,5 +1,4 @@
-from enum import Enum
-class Clef(Enum):
+class Clef():
 
 	def __init__(self):
 		pass
