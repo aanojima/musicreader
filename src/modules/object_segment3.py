@@ -37,7 +37,7 @@ def findObjects(rawImage):
     return bb_array
 
 if __name__ == '__main__':
-    img = cv2.imread('music_hand_example.jpg',0)
+    img = cv2.imread('../../data/music_hand_example.jpg',0)
     small_img = cv2.resize(img, (0,0), fx=0.1, fy=0.1)
     cv2.imshow('original', small_img)
     cv2.waitKey(0)
