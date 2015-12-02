@@ -1,6 +1,9 @@
 class Note():
 
 	def __init__(self):
+		self.pitch = None;
+		self.type = None;
+		self.modifiers = None;
 		pass
 
 class Pitch:
