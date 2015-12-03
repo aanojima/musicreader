@@ -15,7 +15,7 @@ def findObjects(rawImage):
     cv2.imshow('thresholded', thresh2)
     cv2.waitKey(0)
     # find contours based on thresholding
-    contours, hierarchy = cv2.findContours(thresh2,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+    image, contours, hierarchy = cv2.findContours(thresh2,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
     out = rawImage.copy()
     
     cv2.drawContours(out, contours, -1, (255,0,0), 2)
