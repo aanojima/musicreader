@@ -2,14 +2,54 @@ from PIL import Image
 import cv2
 import numpy as np
 
-class Stave():
-    def __init__(self):
-        pass
+class Sheet():
+    
+    horizontal = None
+    vertical = None
 
-def find_stave_lines(image):
+    def __init__(self, horizontal, vertical):
+        self.horizontal = horizontal
+        self.vertical = vertical
+
+    def get_line(self, point):
+        import math
+        x, y = point
+        # At column x, find all white spots
+        column = self.horizontal[:,x]
+        indices = []
+        for i in range(len(column)):
+            if column[i] == 255:
+                indices.append(i)
+
+        for j in range(len(indices) - 1):
+            # TODO: What if inbetween different groups of lines?
+            a = indices[j]
+            b = indices[j+1]
+            mid = float(a+b) / 2.0
+            indices.append(mid)
+
+        indices = sorted(indices)
+
+        pixel = -1
+        distance = float('infinity')
+        for k in range(len(indices)):
+            diff = abs(indices[k]-y)
+            if diff <= distance: #TODO (Could be just less than)
+                # Still decreasing
+                distance = diff
+                pixel = indices[k]
+            elif diff > distance:
+                # Stop (will only increase more)
+                break
+
+        return pixel
+
+
+
+def find_stave_lines(horizontal_image):
     pass
 
-def remove_stave_lines(image):
+def create_sheet(image):
     # Check if image is loaded fine
     if not image.data:
         print "Problem loading image"
@@ -72,8 +112,6 @@ def remove_stave_lines(image):
     vertical = cv2.bitwise_not(vertical);
     cv2.imshow("vertical_bit", vertical);
     cv2.waitKey(0)
-
-    return vertical
     
     # Extract edges and smooth image according to the logic
     # 1. extract edges
@@ -100,13 +138,15 @@ def remove_stave_lines(image):
     smooth = cv2.blur(smooth, (2, 2));
     
     # Step 5
-    vertical = cv2.bitwise_and(smooth, smooth, mask=edges)
+    smooth = cv2.bitwise_or(smooth, smooth, mask=edges)
     
     # Show final result
-    cv2.imshow("smooth", vertical);
+    cv2.imshow("smooth", smooth);
     cv2.waitKey(0)
 
-    return vertical
+    sheet = Sheet(horizontal, vertical)
 
-def identify_line(box):
+    return sheet
+
+def identify_line(box, center):
     print "TODO: Implement identify_line"
