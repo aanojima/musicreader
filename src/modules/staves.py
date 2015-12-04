@@ -16,7 +16,8 @@ def remove_stave_lines(image):
         return
     
     # Show source image
-    # cv2.imshow("Sheet Music 1", image)
+    cv2.imshow("Sheet Music 1", image)
+    cv2.waitKey(0)
 
     # Transform source image to gray if it is not
     if len(image.shape) == 3 and image.shape[2] == 3:
@@ -25,13 +26,15 @@ def remove_stave_lines(image):
         gray = image
 
     # Show gray image
-    # cv2.imshow("Gray Sheet Music 1", gray)
+    cv2.imshow("Gray Sheet Music 1", gray)
+    cv2.waitKey(0)
 
     # Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
-    bw = cv2.adaptiveThreshold(cv2.bitwise_not(gray), 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+    ret, bw = cv2.threshold(cv2.bitwise_not(gray), 127, 255, cv2.THRESH_BINARY)
 
     # Show the binary image
-    # cv2.imshow("Binary", bw)
+    cv2.imshow("Binary", bw)
+    cv2.waitKey(0)
 
     # Create the images that will use to extract the horizontal and vertical lines
     horizontal = bw.copy()
@@ -45,10 +48,11 @@ def remove_stave_lines(image):
 
     # Apply morphology operations
     horizontal = cv2.erode(horizontal, horizontal_structure, (-1, -1))
-    horizontal = cv2.dilate(horizontal, horizontal_structure, (-1, -1))
+    # horizontal = cv2.dilate(horizontal, horizontal_structure, (-1, -1))
 
     # Show extracted horizontal lines
-    # cv2.imshow("Horizontal", horizontal)
+    cv2.imshow("Horizontal", horizontal)
+    cv2.waitKey(0)
 
     # Specify size on vertical axis
     verticalsize = vertical.shape[0] / 30
@@ -61,11 +65,13 @@ def remove_stave_lines(image):
     vertical = cv2.dilate(vertical, verticalStructure, (-1, -1));
     
     # Show extracted vertical lines
-    # cv2.imshow("vertical", vertical);
+    cv2.imshow("vertical", vertical);
+    cv2.waitKey(0)
     
     # Inverse vertical image
     vertical = cv2.bitwise_not(vertical);
-    # cv2.imshow("vertical_bit", vertical);
+    cv2.imshow("vertical_bit", vertical);
+    cv2.waitKey(0)
 
     return vertical
     
@@ -78,12 +84,14 @@ def remove_stave_lines(image):
     
     # Step 1
     edges = cv2.adaptiveThreshold(vertical, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, -2);
-    # cv2.imshow("edges", edges);
+    cv2.imshow("edges", edges);
+    cv2.waitKey(0)
     
     # Step 2
     kernel = np.ones( (2, 2), np.uint8); # TODO
     edges = cv2.dilate(edges, kernel);
-    # cv2.imshow("dilate", edges);
+    cv2.imshow("dilate", edges);
+    cv2.waitKey(0)
     
     # Step 3
     smooth = vertical.copy(); 
@@ -95,7 +103,8 @@ def remove_stave_lines(image):
     vertical = cv2.bitwise_and(smooth, smooth, mask=edges)
     
     # Show final result
-    # cv2.imshow("smooth", vertical);
+    cv2.imshow("smooth", vertical);
+    cv2.waitKey(0)
 
     return vertical
 

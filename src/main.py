@@ -3,6 +3,7 @@ from models.Clef import Clef
 from models.Note import Note
 from models.TimeSignature import TimeSignature
 from modules.staves import *
+from modules.object_segment3 import *
 import numpy as np
 import cv2
 
@@ -16,7 +17,8 @@ def main():
 	# c = Clef()
 	# n = Note()
 	# ts = TimeSignature()
-	image = Image.open("../data/sheet_music2.png").convert('RGB')
+	image = Image.open("../data/handwritten-test.png").convert('RGB')
+	# image = Image.open("../data/sheet_music2.png").convert('RGB')
 	cv_image = np.array(image)
 	cv_image = cv_image[:, :, ::-1].copy()
 	width = cv_image.shape[1]
@@ -25,6 +27,7 @@ def main():
 	cv_image_no_staves = remove_stave_lines(cv_image)
 	cv2.imshow("No Staves Result", cv_image_no_staves)
 	cv2.waitKey(0)
+	bb_array = findObjects(cv_image_no_staves)
 
 if __name__ == '__main__':
 	main()
