@@ -6,47 +6,44 @@ import numpy as np
 # External Dependencies
 from PIL import Image
 
-# from enum import Enum 
-
-# class NoteLength(Enum):
-# 	whole = 1
-# 	half = 2
-# 	quarter = 4
-# 	eighth = 8
-
 WHOLE = 1;
 HALF = 2;
 QUARTER = 4;
 EIGHTH = 8;
 
 
-# Given: Image and bounding box; assume note pitch has already been calculated
+# Given: Image and list of bounding boxes
+# assume note pitch has already been calculated
 # assume given a note without any lines--using just plain handwritten notes for now
-def getNoteLength(rawImage):
-	# threshold
-    ret,thresh2 = cv2.threshold(rawImage,127,255,cv2.THRESH_BINARY_INV)
-    cv2.imshow('thresholded', thresh2)
-    cv2.waitKey(0)
+def getNoteLengths(rawImage, notesList):
+	# if adding the white pixel buffers, notesList may even be a list of matrices representing
+	# each bounding box--in this case, just run our threshold on that data
+	knn = trainData()
 
+	for note in notesList:
+		t1 = cv2.adaptiveThreshold(note,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 5)
+		cells = np.append(cells, t1, axis=0)
+
+	test_labels_list = [WHOLE, HALF, QUARTER, EIGHTH, WHOLE, HALF, QUARTER, EIGHTH]
+
+	result = classifyNotes(cells, testing_labels, knn)
+
+	# new_result = result
+		
+	# change it so that matches up with Note.Types actual types
+	# Whole, Half, Quarter, Eighth, Rest
+	# for i in xraresult:
+	# 	new_result[]
+	# 	note = new Note()
+ #   		note.set_type(options[])
+ 	return result
+
+# trains data using all given data samples
 def trainData():
 	#input data
-	i1 = Image.open("../../data/notes1.png").convert('RGB') # each image 20*20= 400
-	cv_1 = np.array(i1)
-	cv_1 = cv_1[:, :, ::-1].copy()
-	cv_1 =  cv2.cvtColor(cv_1, cv2.COLOR_BGR2GRAY)
-	t1 = cv2.adaptiveThreshold(cv_1,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 3)
-
-	i2 = Image.open("../../data/img2.png").convert('RGB') # each image 20*20= 400
-	cv_2 = np.array(i2)
-	cv_2 = cv_2[:, :, ::-1].copy()
-	cv_2 =  cv2.cvtColor(cv_2, cv2.COLOR_BGR2GRAY)
-	t2 = cv2.adaptiveThreshold(cv_2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 3)
-
-	i3 = Image.open("../../data/img3.jpg").convert('RGB') # each image 20*20= 400
-	cv_3 = np.array(i3)
-	cv_3 = cv_3[:, :, ::-1].copy()
-	cv_3 =  cv2.cvtColor(cv_3, cv2.COLOR_BGR2GRAY)
-	t3 = cv2.adaptiveThreshold(cv_3, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 3)
+	t1 = getTrainingData("../../data/notes1.png")
+	t2 = getTrainingData("../../data/img2.png")
+	t3 = getTrainingData("../../data/img3.jpg")
 
 	# put data in array of size 27 x 4
 	cells1 = [np.hsplit(row, 4) for row in np.vsplit(t1, 9)]
@@ -55,48 +52,25 @@ def trainData():
 
 	cells = np.vstack((cells1, cells2, cells3))
 	x = np.array(cells);
-	# print x.shape
 
 	# first 22 samples for training, last 5 samples for testing
 	train = x[:, :].reshape(-1, 400).astype(np.float32)
-	# test = x[22:27,:].reshape(-1, 400).astype(np.float32)
-	# can do something like this when we want to enter in multiple notes all at once and classify all of them
 
-	# print train.shape
-	# print test.shape
-
-	# Make labels for train and test data
+	# Make labels for train data
 	labels = np.array([WHOLE, HALF, QUARTER, EIGHTH])
 	train_labels = np.tile(labels, 27)[:, np.newaxis]
-	# test_labels = np.tile(labels, 5)[:, np.newaxis]
-
-
 
 	# Initiate kNN, train the data, then test it with test data for k=1
 	knn = cv2.ml.KNearest_create()
 	knn.train(train,cv2.ml.ROW_SAMPLE, train_labels)
-	# ret,result,neighbours,dist = knn.findNearest(test,k=3)
 
-	# Now we check the accuracy of classification
-	# For that, compare the result with test_labels and check which are wrong
-	# matches = result==test_labels
-	# correct = np.count_nonzero(matches)
-	# accuracy = correct*100.0/result.size
-	# print "accuracy:", accuracy
-
-	# cv2.imshow("Original Image", t3)
-	# cv2.waitKey(0)
 	return knn
 
-# classify just one note
-#knownNoteValue used purely to compare if its right
-def classifyNotes(testingData, testingLabels, knn):
-	# image = cv2.resize(image, (20, 20))
-	# image =  cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	# t1 = cv2.adaptiveThreshold(image,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 5)
 
-	# x = np.array(t1);
-	# print x.shape
+# classify all given notes using the given knn
+# for testing purposes!!!! (includes pregiven testing labels)
+def classifyNotesDebug(testingData, testingLabels, knn):
+
 	test = testingData[:,:].reshape(-1, 400).astype(np.float32)
 	ret,result,neighbours,dist = knn.findNearest(test,k=3)
 	print "result:\n", result
@@ -107,13 +81,33 @@ def classifyNotes(testingData, testingLabels, knn):
 	accuracy = correct*100.0/result.size
 	print "accuracy:", accuracy
 
-	# cv2.imshow("Original Image", t1)
-	# cv2.waitKey(0)
+	return result
 
 
+# classify all given notes using the given knn
+# not given testing labels to compare
+def classifyNotes(testingData, knn):
+
+	test = testingData[:,:].reshape(-1, 400).astype(np.float32)
+	ret,result,neighbours,dist = knn.findNearest(test,k=3)
+	print "result:\n", result
+
+	return result
 
 
-#add training image to the cells array and makes np array
+# converts image to grayscaled inverted image to be used in knn
+# input: name of image file
+def getTrainingData(imageFileName):
+	i1 = Image.open(imageFileName).convert('RGB') # each image 20*20= 400
+	cv_1 = np.array(i1)
+	cv_1 = cv_1[:, :, ::-1].copy()
+	cv_1 =  cv2.cvtColor(cv_1, cv2.COLOR_BGR2GRAY)
+	t1 = cv2.adaptiveThreshold(cv_1,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 3)	
+	return t1
+
+
+# add training image to the cells array and makes np array
+# input: list of image filenames -- for testing purposes!!!
 def makeTestingData(imageNameList):
 	cells = np.empty((0,20), int)
 	for imageName in imageNameList:
@@ -126,7 +120,9 @@ def makeTestingData(imageNameList):
 		cells = np.append(cells, t1, axis=0)
 	return cells
 
+
 # makes expected testing labels in column format
+# for testing purposes!!
 def makeTestingLabels(test_labels_list):
 	test_labels =  np.array(test_labels_list)
 	test_labels = np.tile(test_labels, 1)[:, np.newaxis]
@@ -143,6 +139,8 @@ if __name__ == '__main__':
 	# cv_image = cv2.resize(cv_image, (width, height)) # TODO: Play around with size
 	# cv2.imshow("Original Image", cv_image)
 	# cv2.waitKey(0)
+
+	#later, take in a bunch of bounding boxes, (which should be sized 20x20 and find out what they are)
 	test_name_list = ["../../data/whole-note.png",
 					   "../../data/half-note.png",
 					   "../../data/quarter-note.png",
@@ -154,9 +152,12 @@ if __name__ == '__main__':
 
 	test_labels_list = [WHOLE, HALF, QUARTER, EIGHTH, WHOLE, HALF, QUARTER, EIGHTH]
 
+	# TODO: must convert so that can get image matrx if given a bunch of bounding boxes
+	# just need to look at original image and get sub section of it as a matrix
+
 	knn = trainData()
 	testing_data = makeTestingData(test_name_list)
 	testing_labels = makeTestingLabels(test_labels_list)
-	classifyNotes(testing_data, testing_labels, knn)
+	classifyNotesDebug(testing_data, testing_labels, knn)
 	# cv_image_note = getNoteLength(cv_image)
 
