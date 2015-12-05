@@ -6,49 +6,47 @@ import numpy as np
 # External Dependencies
 from PIL import Image
 
-WHOLE = 1;
-HALF = 2;
-QUARTER = 4;
-EIGHTH = 8;
+TREBLE = 1;
+BASS = 2;
 
 
 # Given: Image and list of bounding boxes
 # assume note pitch has already been calculated
 # assume given a note without any lines--using just plain handwritten notes for now
-def getNoteLengths(rawImage, notesList):
+def getClef(rawImage, clefBoundingBox):
 	# if adding the white pixel buffers, notesList may even be a list of matrices representing
 	# each bounding box--in this case, just run our threshold on that data
 	knn = trainData()
 
-	for note in notesList:
-		t1 = cv2.adaptiveThreshold(note,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 5)
-		cells = np.append(cells, t1, axis=0)
+	t1 = cv2.adaptiveThreshold(note,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 5)
+	cells = np.append(cells, t1, axis=0)
 
-	result = classifyNotes(cells, knn)
+	result = classifyClef(cells, testing_labels, knn)
 
 	# new_result = result
 		
 	# change it so that matches up with Note.Types actual types
-	# Whole, Half, Quarter, Eighth, Rest
 	# for i in xraresult:
 	# 	new_result[]
 	# 	note = new Note()
  #   		note.set_type(options[])
- 	# {1: ,
- 	#  2: }
+ 	# {1: Type.Whole,
+ 	#  2: Type.Half,
+ 	#  4: Type.Quarter,
+ 	#  8: Type.EIGHTH}
  	return result
 
 # trains data using all given data samples
 def trainData():
 	#input data
-	t1 = getTrainingData("../../data/note_train/notes1.png")
-	t2 = getTrainingData("../../data/note_train/img2.png")
-	t3 = getTrainingData("../../data/note_train/img3.jpg")
+	t1 = getTrainingData("../../data/clef_train/img1.png")
+	t2 = getTrainingData("../../data/clef_train/img2.png")
+	t3 = getTrainingData("../../data/clef_train/img3.jpg")
 
 	# put data in array of size 27 x 4
-	cells1 = [np.hsplit(row, 4) for row in np.vsplit(t1, 9)]
-	cells2 = [np.hsplit(row, 4) for row in np.vsplit(t2, 9)]
-	cells3 = [np.hsplit(row, 4) for row in np.vsplit(t3, 9)]
+	cells1 = [np.hsplit(row, 2) for row in np.vsplit(t1, 9)]
+	cells2 = [np.hsplit(row, 2) for row in np.vsplit(t2, 9)]
+	cells3 = [np.hsplit(row, 2) for row in np.vsplit(t3, 9)]
 
 	cells = np.vstack((cells1, cells2, cells3))
 	x = np.array(cells);
@@ -69,7 +67,7 @@ def trainData():
 
 # classify all given notes using the given knn
 # for testing purposes!!!! (includes pregiven testing labels)
-def classifyNotesDebug(testingData, testingLabels, knn):
+def classifyClefDebug(testingData, testingLabels, knn):
 
 	test = testingData[:,:].reshape(-1, 400).astype(np.float32)
 	ret,result,neighbours,dist = knn.findNearest(test,k=3)
@@ -86,7 +84,7 @@ def classifyNotesDebug(testingData, testingLabels, knn):
 
 # classify all given notes using the given knn
 # not given testing labels to compare
-def classifyNotes(testingData, knn):
+def classifyClef(testingData, knn):
 
 	test = testingData[:,:].reshape(-1, 400).astype(np.float32)
 	ret,result,neighbours,dist = knn.findNearest(test,k=3)
@@ -130,18 +128,13 @@ def makeTestingLabels(test_labels_list):
 
 
 if __name__ == '__main__':
-
 	#later, take in a bunch of bounding boxes, (which should be sized 20x20 and find out what they are)
-	test_name_list = ["../../data/whole-note.png",
-					   "../../data/half-note.png",
-					   "../../data/quarter-note.png",
-					   "../../data/eighth-note.png",
-					   "../../data/test-whole.png",
-					   "../../data/test-half.png",
-					   "../../data/test-quarter.png",
-					   "../../data/test-eighth.png"]
+	test_name_list = ["../../data/.png",
+					   "../../data/.png",
+					   "../../data/.png",
+					   "../../data/.png",]
 
-	test_labels_list = [WHOLE, HALF, QUARTER, EIGHTH, WHOLE, HALF, QUARTER, EIGHTH]
+	test_labels_list = [TREBLE, BASS, TREBLE, BASS]
 
 	# TODO: must convert so that can get image matrx if given a bunch of bounding boxes
 	# just need to look at original image and get sub section of it as a matrix
@@ -149,6 +142,6 @@ if __name__ == '__main__':
 	knn = trainData()
 	testing_data = makeTestingData(test_name_list)
 	testing_labels = makeTestingLabels(test_labels_list)
-	classifyNotesDebug(testing_data, testing_labels, knn)
+	classifyClefDebug(testing_data, testing_labels, knn)
 	# cv_image_note = getNoteLength(cv_image)
 
