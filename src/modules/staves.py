@@ -1,6 +1,9 @@
 from PIL import Image
 import cv2
 import numpy as np
+import math
+from modules.note import WHOLE, HALF, QUARTER, EIGHTH
+# TODO: Same import for Sharp, Natural, Flat
 
 class Sheet():
     
@@ -10,10 +13,27 @@ class Sheet():
     def __init__(self, horizontal, vertical):
         self.horizontal = horizontal
         self.vertical = vertical
+        # Create Index Mapping
 
-    def get_line(self, point):
-        import math
-        x, y = point
+    def get_line(self, object_type, box):
+        # For Sharp, Natural, Flat, Eight/Quarter/Half Notes, Whole Note
+        (x0, y0, w, h) = box
+
+        # Default to Middle
+        x = x0 + 0.5*w
+        y = y0 + 0.5*w
+        
+        if object_type == EIGHTH:
+            # Near Bottom, Near Left
+            x = x0 + 0.25*w
+            y = y0 + 0.8*h
+        elif object_type in [QUARTER, HALF]:
+            # Near Bottom
+            x = x0 + 0.5*w
+            y = y0 + 0.8*h
+        # TODO: Sharp, Natural, Flat
+            
+
         # At column x, find all white spots
         column = self.horizontal[:,x]
         indices = []
@@ -42,12 +62,8 @@ class Sheet():
                 # Stop (will only increase more)
                 break
 
+        # TODO: return line index instead of pixel
         return pixel
-
-
-
-def find_stave_lines(horizontal_image):
-    pass
 
 def create_sheet(image):
     # Check if image is loaded fine
