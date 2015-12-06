@@ -1,8 +1,4 @@
 class TimeSignature():
-
-	TIME_SIGNATURE_COUNT = 0
-	TIME_SIGNATURE_TYPE = 1
-
 	self.ts_count = None
 	self.ts_type = None
 
