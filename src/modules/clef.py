@@ -42,6 +42,8 @@ def getClef(rawImage, clefBoundingBox):
 def trainData():
 	#input data
 	t1 = getTrainingData("../../data/clef_train/clef1.jpg")
+	# cv2.imshow(t1)
+	# waitKey(0)
 	# t2 = getTrainingData("../../data/clef_train/img2.png")
 	# t3 = getTrainingData("../../data/clef_train/img3.jpg")
 
@@ -54,16 +56,19 @@ def trainData():
 	# cells1_hogg = preprocess_hog(cells1)
 
 	x = np.array(cells1);
+	# print x.shape
 	# hogg features to classify
-	x1 = preprocess_hog(x)
-	print x1.shape
+	train = preprocess_hog(x)
+	# print "len train", len(train)
 
 	# first 22 samples for training, last 5 samples for testing
-	train = x1[:, :].reshape(-1, 400).astype(np.float32)
+	# train2 = x[:, :].reshape(-1, 400).astype(np.float32)
+	# print train2.shape
 
 	# Make labels for train data
 	labels = np.array([TREBLE, BASS, TREBLE, BASS, TREBLE, BASS])
 	train_labels = np.tile(labels, 10)[:, np.newaxis]
+	# print "train labels", train_labels.size
 
 	# Initiate kNN, train the data, then test it with test data for k=1
 	knn = cv2.ml.KNearest_create()
@@ -71,34 +76,45 @@ def trainData():
 
 	return knn
 
-def preprocess_hog(digits):
+def preprocess_hog(x):
     samples = []
-    for img in digits:
-        gx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
-        gy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
-        mag, ang = cv2.cartToPolar(gx, gy)
-        bin_n = 16
-        bin = np.int32(bin_n*ang/(2*np.pi))
-        bin_cells = bin[:10,:10], bin[10:,:10], bin[:10,10:], bin[10:,10:]
-        mag_cells = mag[:10,:10], mag[10:,:10], mag[:10,10:], mag[10:,10:]
-        hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
-        hist = np.hstack(hists)
+    numrows = x.shape[0]
+    numcols = x.shape[1]
+    for row in range(0,numrows):
+    	for col in range(0,numcols):
+    		img = x[row][col]
+    		print "hog"
+    		print row, col
+    		print img
+    		print type(img)
+    		# img.convertTo(img, cv2.CV_32F)
+	        gx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
+	        gy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
+	        mag, ang = cv2.cartToPolar(gx, gy)
+	        bin_n = 16
+	        bin = np.int32(bin_n*ang/(2*np.pi))
+	        bin_cells = bin[:10,:10], bin[10:,:10], bin[:10,10:], bin[10:,10:]
+	        mag_cells = mag[:10,:10], mag[10:,:10], mag[:10,10:], mag[10:,10:]
+	        hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
+	        hist = np.hstack(hists)
 
-        # transform to Hellinger kernel
-        eps = 1e-7
-        hist /= hist.sum() + eps
-        hist = np.sqrt(hist)
-        hist /= norm(hist) + eps
+	        # transform to Hellinger kernel
+	        eps = 1e-7
+	        hist /= hist.sum() + eps
+	        hist = np.sqrt(hist)
+	        hist /= norm(hist) + eps
 
-        samples.append(hist)
+        	samples.append(hist)
+    # print "len samples", len(samples)
     return np.float32(samples)
 
 # classify all given notes using the given knn
 # for testing purposes!!!! (includes pregiven testing labels)
 def classifyClefDebug(testingData, testingLabels, knn):
-
-	test = testingData[:,:].reshape(-1, 400).astype(np.float32)
-	ret,result,neighbours,dist = knn.findNearest(test,k=3)
+	print testingData.shape
+	# test = testingData[:,:].reshape(-1, 400).astype(np.float32)
+	# print test.dtype
+	ret,result,neighbours,dist = knn.findNearest(testingData,k=3)
 	print "result:\n", result
 	print "expected: \n", testingLabels
 
@@ -109,12 +125,11 @@ def classifyClefDebug(testingData, testingLabels, knn):
 
 	return result
 
-
 # classify all given notes using the given knn
 # not given testing labels to compare
 def classifyClef(testingData, knn):
 
-	test = testingData[:,:].reshape(-1, 400).astype(np.float32)
+	# test = testingData[:,:].reshape(-1, 400).astype(np.float32)
 	ret,result,neighbours,dist = knn.findNearest(test,k=3)
 	print "result:\n", result
 
@@ -129,21 +144,31 @@ def getTrainingData(imageFileName):
 	cv_1 = cv_1[:, :, ::-1].copy()
 	cv_1 =  cv2.cvtColor(cv_1, cv2.COLOR_BGR2GRAY)
 	t1 = cv2.adaptiveThreshold(cv_1,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 3)	
+	# cv2.imshow('thresholded', t1)
+	# cv2.waitKey(0)
 	return t1
 
 
 # add training image to the cells array and makes np array
 # input: list of image filenames -- for testing purposes!!!
 def makeTestingData(imageNameList):
-	cells = np.empty((0,20), int)
-	for imageName in imageNameList:
+	cells = np.empty((len(imageNameList), 1, 20,20), np.float32)
+	print cells.shape
+	for index in range(0, len(imageNameList)):
+		imageName = imageNameList[index]
 		i1 = Image.open(imageName).convert('RGB') # each image 25 x 50 = 1250
 		cv_1 = np.array(i1)
 		cv_1 = cv_1[:, :, ::-1].copy()
 		cv_1 = cv2.resize(cv_1, (20, 20))
 		cv_1 =  cv2.cvtColor(cv_1, cv2.COLOR_BGR2GRAY)
 		t1 = cv2.adaptiveThreshold(cv_1,255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 5)
-		cells = np.append(cells, t1, axis=0)
+		print t1.shape
+		cells[index][0] = t1#(cells, t1, axis=0)
+		print "cells shape",  cells.shape
+		# print cells
+	# cells = np.float64(cells)
+	print "cells shape",  cells.shape
+	cells = np.array(cells)
 	return cells
 
 
@@ -169,8 +194,9 @@ if __name__ == '__main__':
 
 	knn = trainData()
 	testing_data = makeTestingData(test_name_list)
+	print "testing_data", testing_data.shape
 	testing_data_hogg = preprocess_hog(testing_data)
 	testing_labels = makeTestingLabels(test_labels_list)
-	classifyClefDebug(testing_data, testing_labels, knn)
+	classifyClefDebug(testing_data_hogg, testing_labels, knn)
 	# cv_image_note = getNoteLength(cv_image)
 
