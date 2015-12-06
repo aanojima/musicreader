@@ -3,6 +3,9 @@ from modules.staves import *
 from modules.object_segment3 import *
 from modules.note import *
 
+from modules.classifier import *
+from modules.common import *
+
 import numpy as np
 import cv2
 
@@ -21,9 +24,7 @@ def main():
 	cv2.imshow("No Staves Result", sheet.vertical)
 	cv2.waitKey(0)
 	bb_array = findObjects(sheet.vertical)
-	# TODO: Pass bb_array to CLASSIFIER to get object type (and any necessary data for object_type)
-	# [ { 'type' : TYPE, 'box' : BBOX, 'label' : LABEL, 'data' : DATA }, ... ]
-	symbol_array = [ { 'type' : CLEF, 'bbox' : bb_array[0], 'label' : BASS 'data' : None } ] # EXAMPLE
+	symbol_array = classifier(bb_array)
 	sheet_music = SheetMusic(symbol_array)
 
 	# TODO: What do we do with the sheet (up to here is the MVP)

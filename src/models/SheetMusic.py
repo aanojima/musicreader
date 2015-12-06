@@ -3,7 +3,7 @@ from models.Clef import *
 from models.Note import *
 from models.TimeSignature import *
 
-from modules.note import *
+from modules.common import *
 
 class SheetMusic():
 
@@ -17,24 +17,23 @@ class SheetMusic():
 	def __init__(self, symbol_array):
 		for i in symbol_array:
 			symbol = symbol_array[i]
-			if symbol['type'] == CLEF: # TODO: Create Enums/Constants for these
+			dtype = symbol['type']
+			label = symbol['label']
+			box = symbol['box']
+			data = symbol['data']
+			if dtype == Symbol.CLEF: # TODO: Create Enums/Constants for these
 				# Ignore Getting Line ==> straight to data model construction
-				clef = symbol['type']
-				self.set_clef(clef)
+				self.set_clef(label)
 			# TODO: What about Key Signature?
-			elif symbol['type'] == TIME_SIGNATURE:
+			elif dtype == Symbol.TIME_SIGNATURE:
 				# TODO: CLASSIFIER should return COUNT or TYPE
-				ts_count = symbol['data']
-				self.set_time_sinature_count(ts_count)
-			elif symbol['type'] == TIME_SIGNATURE_TYPE:
-				ts_type = symbol['data']
-				self.set_time_signature_type(ts_type)
-			elif symbol['type'] in [NATURAL, SHARP, FLAT]:
-				line_index = staves.get_line(symbol['type'], symbol['box'])
-				self.apply_accidental(symbol['type'], line_index)
-			elif symbol['type'] in [EIGHTH, QUARTER, HALF, WHOLE]
-				line_index = staves.get_line(symbol['type'], symbol['box'])
-				self.add_note(symbol['type'], line_index)
+				self.set_time_sinature(label, data)
+			elif dtype == Symbol.Accidental:
+				line_index = staves.get_line(dtype, symbol['box'])
+				self.apply_accidental(label, line_index)
+			elif dtype == Sybmol.Note:
+				line_index = staves.get_line(dtype, box)
+				self.add_note(label, line_index)
 
 	def set_clef(self, clef_type):
 		self.clef = Clef(clef_type)
@@ -43,13 +42,11 @@ class SheetMusic():
 	def set_key_signature(self, accidentals):
 		pass
 
-	def set_time_signature_count(self, count):
-		self.time_signature_count = count
-		if self.time_signature_count is not None and self.time_signature_type is not None:
-			self.time_signature = TimeSignature(self.time_signature_count, self.time_signature_type)
-
-	def set_time_signature_type(self, ts_type):
-		self.time_signature_type = ts_type
+	def set_time_signature(self, ts_type, data):
+		if ts_type == TimeSignatureLabel.COUNT:
+			self.time_signature_count = data
+		elif ts_type == TimeSignatureLabel.TYPE:
+			self.time_signature_type = data
 		if self.time_signature_count is not None and self.time_signature_type is not None:
 			self.time_signature = TimeSignature(self.time_signature_count, self.time_signature_type)
 
@@ -62,4 +59,7 @@ class SheetMusic():
 		pitch = line_index # TODO: Find pitch from line_index
 		note = Note(note_type, pitch) # TODO
 		# TODO: Apply any accidentals
+		if current_accidental is not None:
+			pass # TODO: Apply accidental to note
 		self.notes.push(note)
+		current_accidental = None

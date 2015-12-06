@@ -2,7 +2,8 @@ from PIL import Image
 import cv2
 import numpy as np
 import math
-from modules.note import WHOLE, HALF, QUARTER, EIGHTH
+
+from modules.common import *
 # TODO: Same import for Sharp, Natural, Flat
 
 class Sheet():
@@ -23,11 +24,11 @@ class Sheet():
         x = x0 + 0.5*w
         y = y0 + 0.5*w
         
-        if object_type == EIGHTH:
+        if object_type == NoteLabel.EIGHTH:
             # Near Bottom, Near Left
             x = x0 + 0.25*w
             y = y0 + 0.8*h
-        elif object_type in [QUARTER, HALF]:
+        elif object_type in [NoteLabel.QUARTER, NoteLabel.HALF]:
             # Near Bottom
             x = x0 + 0.5*w
             y = y0 + 0.8*h

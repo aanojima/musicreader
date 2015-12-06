@@ -1,8 +1,5 @@
 class Clef():
 
-	BASS = 0
-	TREBLE = 1
-
 	self.clef_type = None
 
 	def __init__(self, clef):

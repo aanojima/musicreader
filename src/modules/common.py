@@ -218,3 +218,25 @@ def draw_keypoints(vis, keypoints, color = (0, 255, 255)):
     for kp in keypoints:
             x, y = kp.pt
             cv2.circle(vis, (int(x), int(y)), 2, color)
+
+class Symbol:
+    CLEF = 'CLEF'
+    KEY_SIGNATURE = 'KEY_SIGNATURE'
+    TIME_SIGNATURE = 'TIME_SIGNATURE'
+    NOTE = 'NOTE'
+    ACCIDENTAL = 'ACCIDENTAL'
+
+class ClefLabel:
+    TREBLE, BASS = range(2)
+
+class TimeSignatureLabel:
+    COUNT, TYPE = range(2)
+
+class NoteLabel:
+    WHOLE, HALF, QUARTER, EIGHTH, REST = range(5)
+
+class AccidentalLabel:
+    NATURAL, FLAT, SHARP = range(3)
+
+class PitchValue:
+    A, B, C, D, E, F, G = range(7)
