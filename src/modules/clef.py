@@ -2,6 +2,8 @@
 #second step: find accidentals
 import cv2
 import numpy as np
+from numpy.linalg import norm
+
 
 # External Dependencies
 from PIL import Image
@@ -39,24 +41,29 @@ def getClef(rawImage, clefBoundingBox):
 # trains data using all given data samples
 def trainData():
 	#input data
-	t1 = getTrainingData("../../data/clef_train/img1.png")
-	t2 = getTrainingData("../../data/clef_train/img2.png")
-	t3 = getTrainingData("../../data/clef_train/img3.jpg")
+	t1 = getTrainingData("../../data/clef_train/clef1.jpg")
+	# t2 = getTrainingData("../../data/clef_train/img2.png")
+	# t3 = getTrainingData("../../data/clef_train/img3.jpg")
 
 	# put data in array of size 27 x 4
-	cells1 = [np.hsplit(row, 2) for row in np.vsplit(t1, 9)]
-	cells2 = [np.hsplit(row, 2) for row in np.vsplit(t2, 9)]
-	cells3 = [np.hsplit(row, 2) for row in np.vsplit(t3, 9)]
+	cells1 = [np.hsplit(row, 6) for row in np.vsplit(t1, 10)]
+	# cells2 = [np.hsplit(row, 2) for row in np.vsplit(t2, 9)]
+	# cells3 = [np.hsplit(row, 2) for row in np.vsplit(t3, 9)]
 
-	cells = np.vstack((cells1, cells2, cells3))
-	x = np.array(cells);
+	
+	# cells1_hogg = preprocess_hog(cells1)
+
+	x = np.array(cells1);
+	# hogg features to classify
+	x1 = preprocess_hog(x)
+	print x1.shape
 
 	# first 22 samples for training, last 5 samples for testing
-	train = x[:, :].reshape(-1, 400).astype(np.float32)
+	train = x1[:, :].reshape(-1, 400).astype(np.float32)
 
 	# Make labels for train data
-	labels = np.array([WHOLE, HALF, QUARTER, EIGHTH])
-	train_labels = np.tile(labels, 27)[:, np.newaxis]
+	labels = np.array([TREBLE, BASS, TREBLE, BASS, TREBLE, BASS])
+	train_labels = np.tile(labels, 10)[:, np.newaxis]
 
 	# Initiate kNN, train the data, then test it with test data for k=1
 	knn = cv2.ml.KNearest_create()
@@ -64,6 +71,27 @@ def trainData():
 
 	return knn
 
+def preprocess_hog(digits):
+    samples = []
+    for img in digits:
+        gx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
+        gy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
+        mag, ang = cv2.cartToPolar(gx, gy)
+        bin_n = 16
+        bin = np.int32(bin_n*ang/(2*np.pi))
+        bin_cells = bin[:10,:10], bin[10:,:10], bin[:10,10:], bin[10:,10:]
+        mag_cells = mag[:10,:10], mag[10:,:10], mag[:10,10:], mag[10:,10:]
+        hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
+        hist = np.hstack(hists)
+
+        # transform to Hellinger kernel
+        eps = 1e-7
+        hist /= hist.sum() + eps
+        hist = np.sqrt(hist)
+        hist /= norm(hist) + eps
+
+        samples.append(hist)
+    return np.float32(samples)
 
 # classify all given notes using the given knn
 # for testing purposes!!!! (includes pregiven testing labels)
@@ -129,10 +157,10 @@ def makeTestingLabels(test_labels_list):
 
 if __name__ == '__main__':
 	#later, take in a bunch of bounding boxes, (which should be sized 20x20 and find out what they are)
-	test_name_list = ["../../data/.png",
-					   "../../data/.png",
-					   "../../data/.png",
-					   "../../data/.png",]
+	test_name_list = ["../../data/cleftest1.jpg",
+					   "../../data/cleftest2.jpg",
+					   "../../data/cleftest3.jpg",
+					   "../../data/cleftest4.jpg",]
 
 	test_labels_list = [TREBLE, BASS, TREBLE, BASS]
 
@@ -141,6 +169,7 @@ if __name__ == '__main__':
 
 	knn = trainData()
 	testing_data = makeTestingData(test_name_list)
+	testing_data_hogg = preprocess_hog(testing_data)
 	testing_labels = makeTestingLabels(test_labels_list)
 	classifyClefDebug(testing_data, testing_labels, knn)
 	# cv_image_note = getNoteLength(cv_image)

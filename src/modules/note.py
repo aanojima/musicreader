@@ -10,6 +10,9 @@ WHOLE = 1;
 HALF = 2;
 QUARTER = 4;
 EIGHTH = 8;
+SHARP = 9;
+FLAT = 10;
+NATURAL = 11;
 
 
 # Given: Image and list of bounding boxes
@@ -38,31 +41,46 @@ def getNoteLengths(rawImage, notesList):
  	#  2: }
  	return result
 
-# trains data using all given data samples
+# trains note type and accidentals using all given data samples
 def trainData():
 	#input data
 	t1 = getTrainingData("../../data/note_train/notes1.png")
 	t2 = getTrainingData("../../data/note_train/img2.png")
 	t3 = getTrainingData("../../data/note_train/img3.jpg")
+	
+	#SHARP, FLAT, NATURAL DATA THROW IT IN
+	# t4 = getTrainingData("../../data/accidental_train/img1.jpg")
 
 	# put data in array of size 27 x 4
 	cells1 = [np.hsplit(row, 4) for row in np.vsplit(t1, 9)]
 	cells2 = [np.hsplit(row, 4) for row in np.vsplit(t2, 9)]
 	cells3 = [np.hsplit(row, 4) for row in np.vsplit(t3, 9)]
 
+	# FOR SHARPS AND FLATS
+	# cells4 = [np.hsplit(row, 3) for row in np.vsplit(t1, 9)]
+
 	cells = np.vstack((cells1, cells2, cells3))
 	x = np.array(cells);
 
-	# first 22 samples for training, last 5 samples for testing
+	# FOR SHARPS AND FLATS
+	# cells_accidental = np.vstack(cells4);
+	# x2 = np.array(cells_accidental)
+
 	train = x[:, :].reshape(-1, 400).astype(np.float32)
+
+	# train2 = x2[:,:].reshape(-1, 400).astype(np.float32)
 
 	# Make labels for train data
 	labels = np.array([WHOLE, HALF, QUARTER, EIGHTH])
 	train_labels = np.tile(labels, 27)[:, np.newaxis]
 
+	# labels_acc = np.array([SHARP, FLAT, NATURAL])
+	# train_labels_acc = np.tile(labels, 27)[:, np.newaxis]
+
 	# Initiate kNN, train the data, then test it with test data for k=1
 	knn = cv2.ml.KNearest_create()
 	knn.train(train,cv2.ml.ROW_SAMPLE, train_labels)
+	# knn.train(train2, cv2.ml.ROW_SAMPLE, train_labels_acc)
 
 	return knn
 
