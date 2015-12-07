@@ -35,6 +35,8 @@ def preprocess_hog(x):
 	        hist = np.sqrt(hist)
 	        hist /= norm(hist) + eps
 
+	        # print hist
+
         	samples.append(hist)
     # print "len samples", len(samples)
     return np.float32(samples)
@@ -59,8 +61,9 @@ def classifyDebug(testingData, testingLabels, knn):
 	# test = testingData[:,:].reshape(-1, 400).astype(np.float32)
 	# print test.dtype
 	print "CLASSIFY DEBUG"
-	# testing_data = center_data(testingData)
-	testing_data = preprocess_hog(testingData)
+	testing_data = center_data(testingData)
+	testing_data = preprocess_hog(testing_data)
+	print testing_data.shape
 	ret,result,neighbours,dist = knn.findNearest(testing_data,k=3)
 	print "result:\n", result
 	print "expected: \n", testingLabels
@@ -79,6 +82,7 @@ def classify(testingData, knn):
 
 	# test = testingData[:,:].reshape(-1, 400).astype(np.float32)
 	testing_data = preprocess_hog(testingData)
+	print testing_data.shape
 	ret,result,neighbours,dist = knn.findNearest(testing_data,k=3)
 	ret,result,neighbours,dist = knn.findNearest(test,k=3)
 	print "result:\n", result
