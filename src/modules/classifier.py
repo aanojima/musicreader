@@ -6,7 +6,7 @@ Sort the list of bounding boxes into their appropriate categories
 import cv2
 import object_segment3
 
-from modules.common import *
+from common import *
 
 def classifier(bounding_box_array):
     # Symbol Format: { 'type' : TYPE, 'box' : BOX, 'label' : LABEL, 'data' : DATA }
@@ -26,14 +26,13 @@ def classifier(bounding_box_array):
     i+=1
 
     # Key Signature
-    # no patternizable way to identify time signature
+    # TODO: no patternizable way to identify time signature
     num_of_key = 3
     key_signature = symbol.copy()
     key_signature['type'] = Symbol.KEY_SIGNATURE
     key_signature['box'] = []
     key_signature['label'] = []
     key_signature['data'] = []
-    # key_signature['type'] = 
     for k in range(1,i + num_of_key):
         key_signature['box'].append(bounding_box_array[k])
         # TODO: Add label (sharp, flat, etc)
@@ -43,20 +42,21 @@ def classifier(bounding_box_array):
     # Time Signature
     # check y - coordinates in order to sort top and bottom
     time_signature_count = symbol.copy()
-    time_signature_count['type'] = Symbol.TimeSignature
+    time_signature_count['type'] = Symbol.TIME_SIGNATURE
     time_signature_count['label'] = TimeSignatureLabel.COUNT
     time_signature_type = symbol.copy()
-    time_signature_type['type'] = Symbol.TimeSignature
+    time_signature_type['type'] = Symbol.TIME_SIGNATURE
     time_signature_type['label'] = TimeSignatureLabel.TYPE
     if bounding_box_array[i][1] > bounding_box_array[i+1][1]:
         time_signature_count['box'] = bounding_box_array[num_of_key + 1]
         time_signature_type['box'] = bounding_box_array[num_of_key + 2]
+        # TODO: Need data for time signature data (count or type)
     else:
         time_signature_count['box'] = bounding_box_array[num_of_key + 2]
         time_signature_type['box'] = bounding_box_array[num_of_key + 1]
-    # TODO: Need data for time signature data (count or type)
-        
+        # TODO: Need data for time signature data (count or type) 
     i+=1
+
     notes = []
     for j in range(i,len(bounding_box_array)):
         note = symbol.copy()
