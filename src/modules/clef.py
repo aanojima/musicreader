@@ -8,8 +8,8 @@ from common import *
 # External Dependencies
 from PIL import Image
 
-TREBLE = 1;
-BASS = 2;
+TREBLE_RESULT = 1;
+BASS_RESULT = 2;
 
 clef_dictionary = {1: ClefLabel.TREBLE,
  	 			  2: ClefLabel.BASS}
@@ -54,7 +54,7 @@ def trainData():
 	train = classifyhelper.preprocess_hog(x)
 
 	# Make labels for train data
-	labels = np.array([TREBLE, BASS, TREBLE, BASS, TREBLE, BASS])
+	labels = np.array([TREBLE_RESULT, BASS_RESULT, TREBLE_RESULT, BASSRESULT, TREBLERESULT, BASSRESULT])
 	train_labels = np.tile(labels, 10)[:, np.newaxis]
 	# print "train labels", train_labels.size
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 					   "../../data/cleftest3.jpg",
 					   "../../data/cleftest4.jpg",]
 
-	test_labels_list = [TREBLE, BASS, TREBLE, BASS]
+	test_labels_list = [TREBLE_RESULT, BASS_RESULT, TREBLE_RESULT, BASS_RESULT]
 
 	# TODO: must convert so that can get image matrx if given a bunch of bounding boxes
 	# just need to look at original image and get sub section of it as a matrix
@@ -84,6 +84,6 @@ if __name__ == '__main__':
 	print "testing_data", testing_data.shape
 	testing_labels = classifyhelper.makeTestingLabels(test_labels_list)
 	result = classifyhelper.classifyDebug(testing_data, testing_labels, knn)
-	getLabels(result, clef_dictionary) # gets corresponding labels for the model
+	classifyhelper.getLabels(result, clef_dictionary) # gets corresponding labels for the model
 	# cv_image_note = getNoteLength(cv_image)
 
