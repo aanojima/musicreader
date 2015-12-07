@@ -3,36 +3,35 @@ from models.Clef import *
 from models.Note import *
 from models.TimeSignature import *
 
+from modules.staves import *
 from modules.common import *
 
 class SheetMusic():
 
-	self.clef = None
-	self.time_signature = None
-	self.time_signature_count = None
-	self.time_signature_type = None
-	self.current_accidental = None
-	self.notes = []
-
-	def __init__(self, symbol_array):
-		for i in symbol_array:
-			symbol = symbol_array[i]
+	def __init__(self, sheet, symbol_array):
+		self.sheet = sheet
+		self.notes = []
+		self.current_accidental = None
+		for symbol in symbol_array:
 			dtype = symbol['type']
 			label = symbol['label']
 			box = symbol['box']
 			data = symbol['data']
-			if dtype == Symbol.CLEF: # TODO: Create Enums/Constants for these
-				# Ignore Getting Line ==> straight to data model construction
+			if dtype == Symbol.CLEF:
 				self.set_clef(label)
-			# TODO: What about Key Signature?
+			elif dtype == Symbol.KEY_SIGNATURE:
+				# TODO:
+				continue
 			elif dtype == Symbol.TIME_SIGNATURE:
 				# TODO: CLASSIFIER should return COUNT or TYPE
-				self.set_time_sinature(label, data)
-			elif dtype == Symbol.Accidental:
-				line_index = staves.get_line(dtype, symbol['box'])
+				self.set_time_signature(label, data)
+			elif dtype == Symbol.ACCIDENTAL:
+				line_index = sheet.get_line(dtype, symbol['box'], label)
+				print line_index
 				self.apply_accidental(label, line_index)
-			elif dtype == Sybmol.Note:
-				line_index = staves.get_line(dtype, box)
+			elif dtype == Symbol.NOTE:
+				line_index = sheet.get_line(dtype, box, label)
+				print line_index
 				self.add_note(label, line_index)
 
 	def set_clef(self, clef_type):
@@ -54,12 +53,15 @@ class SheetMusic():
 		pitch = line_index # TODO: Find mapping
 		current_accidental = Accidental(a_type, pitch)
 
+	def reset_accidental(self):
+		current_accidental = None
+
 	# ADD Note (with current accidental) and then reset current accidental to None
 	def add_note(self, note_type, line_index):
 		pitch = line_index # TODO: Find pitch from line_index
 		note = Note(note_type, pitch) # TODO
 		# TODO: Apply any accidentals
-		if current_accidental is not None:
+		if self.current_accidental is not None:
 			pass # TODO: Apply accidental to note
-		self.notes.push(note)
-		current_accidental = None
+		self.notes.append(note)
+		self.reset_accidental()

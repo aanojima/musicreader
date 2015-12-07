@@ -1,10 +1,9 @@
 class Note():
 
-	def __init__(self):
-		self.pitch = None;
-		self.type = None;
+	def __init__(self, note_type, pitch):
+		self.pitch = pitch;
+		self.type = note_type;
 		self.modifiers = None;
-		pass
 
 
 	def set_pitch(self, type):

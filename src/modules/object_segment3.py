@@ -40,7 +40,7 @@ def findObjects(rawImage):
     cv2.imshow('All Contours', out2)
     cv2.waitKey(0)
 
-    return bb_array
+    return bb_array, out
 
 if __name__ == '__main__':
     img = cv2.imread('../../data/sample_line.jpg',0)
