@@ -11,7 +11,7 @@ import cv2
 def findObjects(rawImage):
     # threshold
     ret,thresh2 = cv2.threshold(rawImage,127,255,cv2.THRESH_BINARY_INV)
-    
+    print rawImage.shape
     cv2.imshow('thresholded', thresh2)
     cv2.waitKey(0)
     # find contours based on thresholding
