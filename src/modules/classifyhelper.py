@@ -60,7 +60,7 @@ def classifyDebug(testingData, testingLabels, knn):
 	# print test.dtype
 	print "CLASSIFY DEBUG"
 	# testing_data = center_data(testingData)
-	testing_data = preprocess_hog(testing_data)
+	testing_data = preprocess_hog(testingData)
 	ret,result,neighbours,dist = knn.findNearest(testing_data,k=3)
 	print "result:\n", result
 	print "expected: \n", testingLabels
