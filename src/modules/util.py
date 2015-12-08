@@ -8,10 +8,10 @@ import object_segment3
 
 def get_image_from_bb(bb_tuple, original_image):
     (x,y,w,h) = bb_tuple
-    crop_img = img[y:y+h, x:x+w] # Crop from x, y, w, h
+    crop_img = original_image[y:y+h, x:x+w] # Crop from x, y, w, h
     # NOTE: it is img[y: y + h, x: x + w] and *not* img[x: x + w, y: y + h]
-    cv2.imshow("cropped", crop_img)
-    cv2.waitKey(0)
+    # cv2.imshow("cropped", crop_img)
+    # cv2.waitKey(0)
     return crop_img
 
 def pad_to_square(img):

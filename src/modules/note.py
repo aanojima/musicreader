@@ -73,11 +73,21 @@ def trainData():
 	# FOR SHARPS AND FLATS
 	x2 = np.array(cells4)
 	x3 = np.array(cells5)
+	
+	# preprocess testing data
+	testing_data = classifyhelper.center_data(x)
+	testing_data2 = classifyhelper.center_data(x2)
+	testing_data3 = classifyhelper.center_data(x3)
+	print testing_data.shape
+	print testing_data2.shape
+	print testing_data3.shape
+	train = classifyhelper.preprocess_hog(testing_data)
+	train2 = classifyhelper.preprocess_hog(testing_data2)
+	train3 = classifyhelper.preprocess_hog(testing_data3)
 
-	train = classifyhelper.preprocess_hog(x)
-	train2 = classifyhelper.preprocess_hog(x2)
-	train3 = classifyhelper.preprocess_hog(x3)
-
+	print train.shape
+	print train2.shape
+	print train3.shape
 
 	# Make labels for train data
 	labels = np.array([WHOLE_RESULT, HALF_RESULT, QUARTER_RESULT, EIGHTH_RESULT])
@@ -142,6 +152,7 @@ if __name__ == '__main__':
 	# just need to look at original image and get sub section of it as a matrix
 
 	knn = trainData()
+	print "make testng data now"
 	testing_data = classifyhelper.makeTestingData(test_name_list, 20, 20)
 	testing_labels = classifyhelper.makeTestingLabels(test_labels_list)
 	result = classifyhelper.classifyDebug(testing_data, testing_labels, knn)
