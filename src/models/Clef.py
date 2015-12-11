@@ -1,7 +1,16 @@
+from modules.common import *
+
 class Clef():
 
 	def __init__(self, clef):
-		clef_type = clef
+		self.clef_type = clef
+		if self.clef_type == ClefLabel.BASS:
+			self.min = 43
+			self.max = 57
+		elif self.clef_type == ClefLabel.TREBLE:
+			self.min = 64
+			self.max = 77
+
 
 	def get_type(self):
-		return clef_type
+		return self.clef_type

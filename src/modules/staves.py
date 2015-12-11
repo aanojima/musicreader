@@ -6,7 +6,7 @@ import math
 from common import *
 # TODO: Same import for Sharp, Natural, Flat
 
-class Sheet():
+class SheetImages():
 
     def __init__(self, horizontal, vertical):
         self.horizontal = horizontal
@@ -37,9 +37,14 @@ class Sheet():
             x = x0 + 0.5*w
             y = y0 + 0.5*w
         elif label == AccidentalLabel.FLAT:
-            # TODO: Flats
-            x = x0 + 0.5*w
-            y = y0 + 0.5*w
+            # Flat is somewhat similar to half note
+            symbol_image = self.note_head_image[y0:y0+h,x0:x0+w]
+            symbol_image = cv2.resize(symbol_image, (2*w,2*h)) # TODO: Will this fixed resize always work?
+            x, y = get_note_centroid(symbol_image)
+            if x == -1 and y == -1:
+                return -1
+            x = x0 + (x / 2.0)
+            y = y0 + (y / 2.0)
         else:
             # Default (Middle of Box)
             x = x0 + 0.5*w
@@ -76,18 +81,17 @@ class Sheet():
                 # Stop (will only increase more)
                 break
 
-        # TODO: return line index instead of pixel
         return line_index
 
-def create_sheet(image):
+def create_sheet_images(image):
     # Check if image is loaded fine
     if not image.data:
         print "Problem loading image"
         return
     
     # Show source image
-    # cv2.imshow("Sheet Music 1", image)
-    # cv2.waitKey(0)
+    cv2.imshow("Sheet Music 1", image)
+    cv2.waitKey(0)
 
     # Transform source image to gray if it is not
     if len(image.shape) == 3 and image.shape[2] == 3:
@@ -96,15 +100,15 @@ def create_sheet(image):
         gray = image
 
     # Show gray image
-    # cv2.imshow("Gray Sheet Music 1", gray)
-    # cv2.waitKey(0)
+    cv2.imshow("Gray Sheet Music 1", gray)
+    cv2.waitKey(0)
 
     # Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
     ret, bw = cv2.threshold(cv2.bitwise_not(gray), 127, 255, cv2.THRESH_BINARY)
 
     # Show the binary image
-    # cv2.imshow("Binary", bw)
-    # cv2.waitKey(0)
+    cv2.imshow("Binary", bw)
+    cv2.waitKey(0)
 
     # Create the images that will use to extract the horizontal and vertical lines
     horizontal = bw.copy()
@@ -118,11 +122,11 @@ def create_sheet(image):
 
     # Apply morphology operations
     horizontal = cv2.erode(horizontal, horizontal_structure, (-1, -1))
-    # horizontal = cv2.dilate(horizontal, horizontal_structure, (-1, -1))
+    horizontal = cv2.dilate(horizontal, horizontal_structure, (-1, -1))
 
     # Show extracted horizontal lines
-    # cv2.imshow("Horizontal", horizontal)
-    # cv2.waitKey(0)
+    cv2.imshow("Horizontal", horizontal)
+    cv2.waitKey(0)
 
     # Specify size on vertical axis
     verticalsize = vertical.shape[0] / 30
@@ -135,13 +139,13 @@ def create_sheet(image):
     vertical = cv2.dilate(vertical, verticalStructure, (-1, -1));
     
     # Show extracted vertical lines
-    # cv2.imshow("vertical", vertical);
-    # cv2.waitKey(0)
+    cv2.imshow("vertical", vertical);
+    cv2.waitKey(0)
     
     # Inverse vertical image
     vertical = cv2.bitwise_not(vertical);
-    # cv2.imshow("vertical_bit", vertical);
-    # cv2.waitKey(0)
+    cv2.imshow("vertical_bit", vertical);
+    cv2.waitKey(0)
     
     # Extract edges and smooth image according to the logic
     # 1. extract edges
@@ -152,14 +156,14 @@ def create_sheet(image):
     
     # Step 1
     edges = cv2.adaptiveThreshold(vertical, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, -2);
-    # cv2.imshow("edges", edges);
-    # cv2.waitKey(0)
+    cv2.imshow("edges", edges);
+    cv2.waitKey(0)
     
     # Step 2
     kernel = np.ones( (2, 2), np.uint8); # TODO
     edges = cv2.dilate(edges, kernel);
-    # cv2.imshow("dilate", edges);
-    # cv2.waitKey(0)
+    cv2.imshow("dilate", edges);
+    cv2.waitKey(0)
     
     # Step 3
     smooth = vertical.copy(); 
@@ -171,10 +175,10 @@ def create_sheet(image):
     smooth = cv2.bitwise_or(smooth, smooth, mask=edges)
     
     # Show final result
-    # cv2.imshow("smooth", smooth);
-    # cv2.waitKey(0)
+    cv2.imshow("smooth", smooth);
+    cv2.waitKey(0)
 
-    sheet = Sheet(horizontal, vertical)
+    sheet = SheetImages(horizontal, vertical)
 
     return sheet
 
@@ -191,16 +195,23 @@ def get_note_centroid(note_image):
         circles = np.uint16(np.around(circles))
         x = circles[0,0,0]
         y = circles[0,0,1]
+        for i in circles[0,:]:
+            center = (i[0], i[1])
+            cv2.circle(gray, (i[0], i[1]), i[2], (0,255,0), 2)
+            cv2.circle(gray, (i[0], i[1]), 2   , (0,0,255), 3)
+            cv2.imshow('Detected Circles', gray)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
     else:
         print 'not note centroid'
     return x, y
 
 
 if __name__ == '__main__':
-    image = cv2.imread('../../data/whole-note.png', 0)
+    image = cv2.imread('../../data/flat.jpg', 0)
     width = image.shape[1]
     height = image.shape[0]
     box = (0,0,width,height)
-    image = cv2.resize(image, (3*width, 3*height))
+    image = cv2.resize(image, (2*width, 2*height))
     get_note_centroid(image)
     cv2.waitKey(0)
