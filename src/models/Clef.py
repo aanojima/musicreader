@@ -14,3 +14,9 @@ class Clef():
 
 	def get_type(self):
 		return self.clef_type
+
+	def display(self):
+		if self.clef_type == ClefLabel.BASS:
+			print "CLEF - BASS"
+		elif self.clef_type == ClefLabel.TREBLE:
+			print "CLEF - TREBLE"

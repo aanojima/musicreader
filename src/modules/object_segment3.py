@@ -23,16 +23,16 @@ def findObjects(rawImage):
     # threshold
     ret,thresh2 = cv2.threshold(rawImage,127,255,cv2.THRESH_BINARY_INV)
     
-    cv2.imshow('thresholded', thresh2)
-    cv2.waitKey(0)
+    # cv2.imshow('thresholded', thresh2)
+    # cv2.waitKey(0)
     # find contours based on thresholding
     image, contours, hierarchy = cv2.findContours(thresh2,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
     
     out = rawImage.copy()
     
     cv2.drawContours(out, contours, -1, (255,0,0), 2)
-    cv2.imshow('contours', out)
-    cv2.waitKey(0)
+    # cv2.imshow('contours', out)
+    # cv2.waitKey(0)
 
     # fit bounding boxes to polygons
     out2 = rawImage.copy()
@@ -60,7 +60,6 @@ def findObjects(rawImage):
             
             if (RectA_X1 < RectB_X2 and RectA_X2 > RectB_X1 and
             RectA_Y1 < RectB_Y2 and RectA_Y2 > RectB_Y1):
-                print "Overlap!"
                 # TODO: Intelligent Merging?
                 # if one is completely a subset of the other
                 to_delete.append(findSmallerRect(bb_rand_array[i],bb_rand_array[j],i,j))
@@ -68,9 +67,7 @@ def findObjects(rawImage):
     to_delete = list(set(to_delete))
     to_delete.sort()
     to_delete.reverse()
-    print to_delete
     for ind in to_delete:
-        print ind
         bb_rand_array.pop(ind)
         
     # re-order bounding box array from left to right
@@ -81,16 +78,15 @@ def findObjects(rawImage):
         x,y,w,h = box
         cv2.rectangle(out2,(x,y),(x+w,y+h),(0,255,0),2)
         
-    cv2.imshow('All Contours', out2)
-    cv2.waitKey(0)
+    # cv2.imshow('All Contours', out2)
+    # cv2.waitKey(0)
 
-    print bb_array
-    return bb_array
+    return bb_array, out
 
 if __name__ == '__main__':
     img = cv2.imread('../../data/sample_line.jpg',0)
     #small_img = cv2.resize(img, (0,0), fx=0.1, fy=0.1)
-    cv2.imshow('original', img)
-    cv2.waitKey(0)
+    # cv2.imshow('original', img)
+    # cv2.waitKey(0)
     print findObjects(img)
     cv2.destroyAllWindows()

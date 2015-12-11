@@ -2,6 +2,7 @@ from models.Accidental import *
 from models.Clef import *
 from models.Note import *
 from models.TimeSignature import *
+from models.KeySignature import *
 
 from modules.staves import *
 from modules.common import *
@@ -12,6 +13,9 @@ class SheetMusic():
 		self.sheet = sheet
 		self.notes = []
 		self.current_accidental = None
+		self.time_signature_count = None
+		self.time_signature_type = None
+		self.KEY_SIGNATURE = []
 		for symbol in symbol_array:
 			dtype = symbol['type']
 			label = symbol['label']
@@ -21,25 +25,33 @@ class SheetMusic():
 				self.set_clef(label)
 			elif dtype == Symbol.KEY_SIGNATURE:
 				# TODO:
-				continue
+				symbol['data'] = []
+				accidentals = []
+				for i in range(len(label)):
+					l = label[i]
+					b = box[i]
+					if is_accidental(l):
+						line_index = sheet.get_line(Symbol.ACCIDENTAL, b, l)
+						accidental = Accidental(l, line_index)
+						accidentals.append(accidental)
+						symbol['data'].append(line_index)
+				self.set_key_signature(accidentals)
 			elif dtype == Symbol.TIME_SIGNATURE:
-				# TODO: CLASSIFIER should return COUNT or TYPE
 				self.set_time_signature(label, data)
-			elif dtype == Symbol.ACCIDENTAL:
-				line_index = sheet.get_line(dtype, symbol['box'], label)
-				print line_index
-				self.apply_accidental(label, line_index)
 			elif dtype == Symbol.NOTE:
 				line_index = sheet.get_line(dtype, box, label)
-				print line_index
-				self.add_note(label, line_index)
+				symbol['data'] = line_index
+				if is_note(label):
+					self.add_note(label, line_index)
+				elif is_accidental(label):
+					self.apply_accidental(label, line_index)
 
 	def set_clef(self, clef_type):
 		self.clef = Clef(clef_type)
 
 	# Requires a list of accidentals
 	def set_key_signature(self, accidentals):
-		pass
+		self.key_signature = KeySignature(accidentals)
 
 	def set_time_signature(self, ts_type, data):
 		if ts_type == TimeSignatureLabel.COUNT:
@@ -51,17 +63,23 @@ class SheetMusic():
 
 	def apply_accidental(self, a_type, line_index):
 		pitch = line_index # TODO: Find mapping
-		current_accidental = Accidental(a_type, pitch)
+		self.current_accidental = Accidental(a_type, pitch)
 
 	def reset_accidental(self):
-		current_accidental = None
+		self.current_accidental = None
 
 	# ADD Note (with current accidental) and then reset current accidental to None
 	def add_note(self, note_type, line_index):
 		pitch = line_index # TODO: Find pitch from line_index
 		note = Note(note_type, pitch) # TODO
-		# TODO: Apply any accidentals
 		if self.current_accidental is not None:
-			pass # TODO: Apply accidental to note
+			note.apply_accidental(self.current_accidental)
 		self.notes.append(note)
 		self.reset_accidental()
+
+	def display(self):
+		self.clef.display()
+		self.key_signature.display()
+		self.time_signature.display()
+		for note in self.notes:
+			note.display()

@@ -227,16 +227,22 @@ class Symbol:
     ACCIDENTAL = 'ACCIDENTAL'
 
 class ClefLabel:
-    TREBLE, BASS = range(2)
+    TREBLE, BASS = 11, 12
 
 class TimeSignatureLabel:
-    COUNT, TYPE = range(2)
+    COUNT, TYPE = 21, 22
 
 class NoteLabel:
-    WHOLE, HALF, QUARTER, EIGHTH, REST = range(5)
+    WHOLE, HALF, QUARTER, EIGHTH, REST = 1,2,4,8,-1
 
 class AccidentalLabel:
-    NATURAL, FLAT, SHARP = range(3)
+    FLAT, NATURAL, SHARP = range(31,34)
 
 class PitchValue:
-    A, B, C, D, E, F, G = range(7)
+    A, B, C, D, E, F, G = range(41,48)
+
+def is_note(label):
+    return label in [NoteLabel.WHOLE, NoteLabel.HALF, NoteLabel.QUARTER, NoteLabel.EIGHTH, NoteLabel.REST]
+
+def is_accidental(label):
+    return label in [AccidentalLabel.FLAT, AccidentalLabel.NATURAL, AccidentalLabel.SHARP]

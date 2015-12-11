@@ -23,7 +23,7 @@ from common import clock, mosaic
 
 SZ = 20 # size of each digit is SZ x SZ
 CLASS_N = 10
-DIGITS_FN = '../../data/digits.png'
+DIGITS_FN = '../data/digits.png'
 
 def split2d(img, cell_size, flatten=True):
     h, w = img.shape[:2]
@@ -35,7 +35,7 @@ def split2d(img, cell_size, flatten=True):
     return cells
 
 def load_digits(fn):
-    print 'loading "%s" ...' % fn
+    # print 'loading "%s" ...' % fn
     digits_img = cv2.imread(fn, 0)
     digits = split2d(digits_img, (SZ, SZ))
     labels = np.repeat(np.arange(CLASS_N), len(digits)/CLASS_N)
@@ -130,19 +130,31 @@ def preprocess_hog(digits):
         samples.append(hist)
     return np.float32(samples)
 
-def get_digit_guess(number_image):
+def get_digit_guess(ocr, number_image):
     small_image = cv2.resize(number_image, (20,20))
     ret,thresh2 = cv2.threshold(small_image,127,255,cv2.THRESH_BINARY_INV)
-    cv2.imshow('time thresh', thresh2)
-    cv2.waitKey(0)
+    # cv2.imshow('time thresh', thresh2)
+    # cv2.waitKey(0)
 
     # use HOG preprocessing without deskew
     sample_new = preprocess_hog([thresh2])
-    resp = model.predict(sample_new)
-    print "resp", resp
+    resp = ocr.predict(sample_new)
     return resp
 
-
+def create_ocr_model():
+    digits, labels = load_digits(DIGITS_FN)
+    rand = np.random.RandomState(321)
+    shuffle = rand.permutation(len(digits))
+    digits, labels = digits[shuffle], labels[shuffle]
+    digits2 = map(deskew, digits)
+    samples = preprocess_hog(digits2)
+    train_n = int(0.9*len(samples))
+    digits_train, digits_test = np.split(digits2, [train_n])
+    samples_train, samples_test = np.split(samples, [train_n])
+    labels_train, labels_test = np.split(labels, [train_n])
+    model = KNearest(k=4)
+    model.train(samples_train, labels_train)
+    return model
 
 if __name__ == '__main__':
     print __doc__

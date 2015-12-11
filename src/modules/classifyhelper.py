@@ -34,7 +34,6 @@ def preprocess_hog(x):
 # centers given image and produces suare image
 def center_data(x):
 	samples = []
-	print "x.shape", x.shape
 	numrows = x.shape[0]
 	numcols = x.shape[1]
 	for row in range(0,numrows):
@@ -74,8 +73,8 @@ def classify(testingData, knn):
 	testing_data = center_data(testingData)
 	testing_data = preprocess_hog(testing_data)
 	ret,result,neighbours,dist = knn.findNearest(testing_data,k=3)
-	ret,result,neighbours,dist = knn.findNearest(test,k=3)
-	print "result:\n", result
+	# ret,result,neighbours,dist = knn.findNearest(test,k=3)
+	# print "result:\n", result
 
 	return result
 
@@ -107,6 +106,16 @@ def makeTestingData(imageNameList, width, height):
 	
 	cells = np.array(cells)
 
+	return cells
+
+def makeInputData(image, height, width):
+	# cv2.destroyAllWindows()
+	# cv2.imshow('input data', image)
+	# cv2.waitKey(0)
+	cells = np.empty((1,1,width,height), np.float32)
+	# image =  cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	cells[0][0] = image
+	cells = np.array(cells)
 	return cells
 
 
